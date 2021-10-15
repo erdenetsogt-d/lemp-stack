@@ -17,14 +17,22 @@ Variables can be found on /var/main.yml for choose which package will install.
 
 vhost_domain: "sub1.example.com"
 new_install: true
+
 install_phpfpm: true
+
 install_golang: true
+
 install_tig: true
+
 vhost_use_ssl: false
+
 lets_encrypt: false
+
 install_mariadb: true
+
 set_timezone: true
-set_proxy: false
+
+
 
 Can be change php version on /var/php-fpm.yml
 Mariadb related configs will found ubuntu-mariadb.yml
