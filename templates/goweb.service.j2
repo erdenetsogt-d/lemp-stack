@@ -1,0 +1,14 @@
+
+[Unit]
+Description=geosystem-service
+
+[Service]
+Type=simple
+Restart=always
+User={{ user_name }}
+RestartSec=5s
+WorkingDirectory=/home/{{ user_name }}/web/{{ vhost_domain }}/app
+ExecStart=/home/{{ user_name }}/web/{{ vhost_domain }}/app/main
+
+[Install]
+WantedBy=multi-user.target

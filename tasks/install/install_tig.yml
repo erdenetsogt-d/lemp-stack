@@ -1,0 +1,112 @@
+---
+- name: Add Grafana Repository 
+  apt_key:
+    url: "{{ key_url }}"
+    state: present
+
+  
+- name: Add telegraf repo key
+  apt_key:
+    url: "{{ key_url_telegraf }}"
+    state: present
+  become: true
+
+- name: Add repo Repository for telegraf
+  apt_repository:
+    repo: "{{ repo_deb_telegraf }}"
+    state: present
+    filename: telegraf
+  become: true
+
+- name: Add repo Repository for  grafana
+  apt_repository:
+    repo: "{{ repo_deb }}"
+    state: present
+    filename: grafana
+
+- name: Update apt cache and install grafana
+  apt:
+    name: grafana
+    state: present
+    update_cache: yes
+  tags:
+  - grafana
+- name: Add admin user pass for grafana
+  lineinfile:
+    path: "/etc/grafana/grafana.ini"
+    line: "admin_password = {{grafana_admin_pass}}"
+
+- name: disable admin user creation
+  lineinfile:
+    path: "/etc/grafana/grafana.ini"
+    line: "disable_initial_admin_creation = {{disable_initial_admin_creation}}"
+
+- name: disable user registration
+  lineinfile:
+    path: "/etc/grafana/grafana.ini"
+    line: "allow_sign_up = false"
+
+- name: Ensure grafana service is running as configured.
+  service:
+    name: grafana-server
+    state: started
+    enabled: true
+
+- name: Update apt cache and install influx
+  apt:
+    pkg: 
+        - influxdb
+        - telegraf
+    state: latest
+    update_cache: yes
+  tags:
+  - influxdb
+
+- name: Move old telegraf conf to /opt folder
+  command: mv /etc/telegraf/telegraf.conf /opt/
+
+- name: Add Vhost config file from template
+  template:
+    src: telegraf.conf.j2
+    dest: "/etc/telegraf/telegraf.conf"
+    force: true
+  
+    
+- name: Ensure grafana service is running as configured.
+  service:
+    name: influxdb
+    state: started
+    enabled: true
+  tags:
+  - tig
+
+- name: Enable service telegraf 
+  ansible.builtin.systemd:
+    name: telegraf
+    enabled: yes
+  notify:
+    - restart telegraf
+    
+- name: Set Grafana admin pass
+  shell:  grafana-cli admin reset-admin-password {{ grafana_admin_pass }}
+  notify:
+    - restart grafana
+
+
+- name: Create influxdb datasource
+  grafana_datasource:
+    name: "{{ item.name }}"
+    grafana_url: "{{ grafana_url }}"
+    grafana_user: "{{ grafana_user }}"
+    grafana_password: "{{ grafana_admin_pass }}"
+    ds_type: "{{ item.ds_type }}"
+    url: "{{ item.url }}"
+    database: "{{ item.name }}"
+    user: "{{ item.user }}"
+    password: "{{ item.password }}"
+    state: present
+  with_items: "{{ data_source }}"
+  tags:
+  - tig
+- name: restart grafana
+  service: name=grafana-server state=restarted

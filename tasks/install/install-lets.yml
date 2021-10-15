@@ -1,0 +1,12 @@
+---
+- name: Update apt cache and install certbot
+  apt:
+    name: certbot
+    state: present
+  when: "'certbot' not in ansible_facts.packages"
+  become: yes
+
+- name: change the path to letsencrypt
+  set_fact:
+    letsencrypt_path: "/usr/bin/letsencrypt"
+  become: yes

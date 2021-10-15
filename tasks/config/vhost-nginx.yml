@@ -1,0 +1,195 @@
+---
+# - name: Remove default nginx vhost config file (if configured).
+#   file:
+#     path: "{{ nginx_default_vhost_path }}"
+#     state: absent
+#   when: nginx_remove_default_vhost | bool
+#   notify: restart nginx
+
+# - name: Ensure nginx_vhost_path exists.
+#   file:
+#     path: "{{ nginx_vhost_path }}"
+#     state: directory
+#     mode: 0755
+#   notify: reload nginx
+
+# - name: Set variable with ssl
+#   set_fact: 
+#     nginx_vhosts: "443 ssl http2"
+    
+#   when: vhost_use_ssl
+
+# - name: Set variable no ssl
+#   set_fact: 
+#     nginx_vhosts: "80"
+#   when: not vhost_use_ssl and set_proxy != false
+  
+
+# - name: Add managed vhost config files with no proxy.
+#   template:
+#     src: "{{ item.template|default(nginx_vhost_template) }}"
+#     dest: "{{ nginx_vhost_path }}/{{ item.filename|default(item.server_name.split(' ')[0] ~ '.conf') }}"
+#     force: true
+#     owner: root
+#     group: "{{ root_group }}"
+#     mode: 0644
+  
+#   with_items: "{{ nginx_vhosts_nonssl }}"
+#   notify: reload nginx
+#   tags:
+#     - skip_ansible_lint
+#   when: not vhost_use_ssl and not set_proxy 
+
+
+# - name: Add reverse proxy config on nginx 80.
+#   template:
+#     src: "{{ item.template|default(nginx_vhost_template) }}"
+#     dest: "{{ nginx_vhost_path }}/{{ item.filename|default(item.server_name.split(' ')[0] ~ '.conf') }}"
+#     force: true
+#     owner: root
+#     group: "{{ root_group }}"
+#     mode: 0644
+#   #when: item.state|default('present') != 'absent'
+#   with_items: "{{ nginx_proxy_vhost }}"
+#   notify: reload nginx
+#   tags:
+#     - skip_ansible_lint
+#   when: not vhost_use_ssl and set_proxy
+
+  
+# - name: Add managed SSL vhost config files.
+#   template:
+#     src: "{{ item.template|default(nginx_vhost_template) }}"
+#     dest: "{{ nginx_vhost_path }}/{{ item.filename|default(item.server_name.split(' ')[0] ~ '.conf') }}"
+#     force: true
+#     owner: root
+#     group: "{{ root_group }}"
+#     mode: 0644
+#   #when: item.state|default('present') != 'absent'
+#   with_items: "{{ nginx_vhosts_ssl }}"
+#   notify: reload nginx
+#   tags:
+#     - skip_ansible_lint
+#   when: vhost_use_ssl and not set_proxy 
+    
+# - name: Add managed SSL vhost config files. Proxy golang
+#   template:
+#     src: "{{ item.template|default(nginx_vhost_template) }}"
+#     dest: "{{ nginx_vhost_path }}/{{ item.filename|default(item.server_name.split(' ')[0] ~ '.conf') }}"
+#     force: true
+#     owner: root
+#     group: "{{ root_group }}"
+#     mode: 0644
+#   #when: item.state|default('present') != 'absent'
+#   with_items: "{{ nginx_proxy_ssl }}"
+#   notify: reload nginx
+#   tags:
+#     - skip_ansible_lint
+#   when: vhost_use_ssl and set_proxy
+
+# - name: Remove managed vhost config files.
+#   file:
+#     path: "{{ nginx_vhost_path }}/{{ item.filename|default(item.server_name.split(' ')[0] ~ '.conf') }}"
+#     state: absent
+#   when: item.state|default('present') == 'absent'
+#   with_items: "{{ nginx_vhosts_nonssl }}"
+# #  notify: reload nginx
+#   tags:
+#     - skip_ansible_lint
+
+# - name: Remove legacy vhosts.conf file.
+#   file:
+#     path: "{{ nginx_vhost_path }}/vhosts.conf"
+#     state: absent
+#   notify: reload nginx
+- name: Add directories for {{ vhost_domain }}
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ user_name }}"
+    mode: user
+    
+  loop:
+    - /home/{{ user_name }}/conf/{{ vhost_domain }}
+    - /home/{{ user_name }}/conf/{{ vhost_domain }}/ssl
+    - /home/{{ user_name }}/web/{{ vhost_domain }}
+    - /home/{{ user_name }}/web/{{ vhost_domain }}/public_html
+    - /home/{{ user_name }}/web/{{ vhost_domain }}/log
+    - /home/{{ user_name }}/web/{{ vhost_domain }}/document_errors
+    # - /etc/nginx/conf.d/domains/{{vhost_domain}}
+  tags:
+    - mdkdir
+
+- name: Create a directory for laravel root
+  ansible.builtin.file:
+    path: /home/{{ user_name }}/web/{{ vhost_domain }}/public_html/public
+    state: directory
+  when: laravel==true
+
+- name: Add Vhost config file from template
+  template:
+    src: host.j2
+    dest: "/etc/nginx/conf.d/domains/{{ vhost_domain }}.conf"
+    force: true
+    owner: root
+    group: "{{ root_group }}"
+    mode: 0644
+
+    
+- name: Create log files for {{ vhost_domain }}
+  file: 
+    path: "{{ item }}"
+    state: touch
+    owner: "{{ __nginx_user }}"
+    mode: 0755
+  with_items:
+  - /var/log/nginx/domains/{{ vhost_domain }}.log
+  - /var/log/nginx/domains/{{ vhost_domain }}.bytes
+  - /var/log/nginx/domains/{{ vhost_domain }}.error.log
+  
+
+- name: Enable new site
+  file:
+    src: /etc/nginx/conf.d/domains/{{ vhost_domain }}.conf
+    dest: /home/{{ user_name }}/conf/{{ vhost_domain }}/nginx.{{ vhost_domain }}.conf
+    state: link
+  notify: 
+    - reload nginx
+
+- name: Copy index files to new virtualhost
+  copy:
+    src: files/index.html
+    dest: "{{ webroot_path }}" 
+    mode: preserve
+  notify:
+    - reload nginx
+
+- name: Copy Error 404 pages to vhost
+  copy:
+    src: files/404.html
+    dest: /home/{{ user_name }}/web/{{ vhost_domain }}/document_errors
+    owner: "{{user_name}}"
+    mode: preserve
+- name: Copy Error 50x pages to vhost
+  copy:
+    src: files/50x.html
+    dest: /home/{{ user_name }}/web/{{ vhost_domain }}/document_errors
+    owner: "{{user_name}}"
+    mode: preserve
+  notify:
+    - reload nginx
+
+- name: Change permissions of vhost user
+  file:
+    path: /home/{{ user_name }}/web/{{ vhost_domain }}
+    owner: "{{ user_name }}"
+    group: "{{ group_name }}"
+    recurse: yes
+  
+
+- name: reload nginx
+  service: name=nginx state=restarted
+
+
+  
+

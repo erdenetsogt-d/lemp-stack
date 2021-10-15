@@ -1,0 +1,66 @@
+server {
+  listen 80;
+  listen [::]:80;
+  server_name {{ vhost_domain }} www.{{ vhost_domain }};
+  root {{ webroot_path }};
+  index index.php index.html index.htm;
+  access_log  /var/log/nginx/domains/{{ vhost_domain }}.log combined;
+  access_log  /var/log/nginx/domains/{{ vhost_domain }}.bytes bytes;
+  error_log   /var/log/nginx/domains/{{ vhost_domain }}.error.log error;
+ 
+  location ^~ /.well-known/acme-challenge/ {
+    try_files $uri $uri/ =404;
+   }
+ 
+  location / {
+ 
+         return 301 https://$host$request_uri;
+    
+  }
+}
+
+server {
+
+  listen 443 ssl http2;
+  server_name {{ vhost_domain }} www.{{ vhost_domain }};
+  root {{ webroot_path }};
+  index index.php index.html index.htm;
+  access_log  /var/log/nginx/domains/{{ vhost_domain }}.log combined;
+  access_log  /var/log/nginx/domains/{{ vhost_domain }}.bytes bytes;
+  error_log   /var/log/nginx/domains//{{ vhost_domain }}.error.log error;
+    ssl_certificate        /home/lambda/conf/{{ vhost_domain }}/ssl/{{ vhost_domain }}.pem;
+    ssl_certificate_key     /home/lambda/conf/{{ vhost_domain }}/ssl/{{ vhost_domain }}.key;
+  
+    ssl_stapling on;
+    ssl_stapling_verify on;
+
+
+    location = /favicon.ico {
+      log_not_found off;
+      access_log off;
+    }
+
+    location = /robots.txt {
+      allow all;
+      log_not_found off;
+      access_log off;
+    }
+    location / {
+      try_files $uri $uri/ /index.php?$args;
+      location ~* ^.+\.(ogg|ogv|svg|svgz|swf|eot|otf|woff|woff2|mov|mp3|mp4|webm|flv|ttf|rss|atom|jpg|jpeg|gif|png|ico|bmp|mid|midi|wav|rtf|css|js|jar)$ {
+          expires 30d;
+          fastcgi_hide_header "Set-Cookie";
+      }
+        location ~ [^/]\.php(/|$) {
+          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+          try_files $uri =404;
+          fastcgi_pass unix:{{ fastcgi_pass}}
+          fastcgi_index index.php;
+          include /etc/nginx/fastcgi_params;
+      }
+    }
+         location /error/ {
+        alias   /home/lambda/web/{{ vhost_domain }}/document_errors/;
+    }
+}
+

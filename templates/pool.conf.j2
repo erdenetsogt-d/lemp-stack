@@ -1,0 +1,25 @@
+{{ ansible_managed | comment(decoration="; ") }}
+[{{ pool.name }}]
+
+{% if pool.tcp_enabled %}
+listen = 127.0.0.1:{{ pool.listen_port }}
+{% else %}
+listen = /run/php/php-fpm-{{ pool.name }}.sock
+{% endif %}
+
+user = {{ pool.user }}
+group = {{ pool.group }}
+
+listen.owner = {{ user_name }}
+listen.group = www-data
+
+pm = {{ pool.pm }}
+pm.max_requests = {{pool.pm_max_requests}}
+pm.max_children = {{ pool.pm_max_children }}
+pm.start_servers = {{ pool.pm_start_servers }}
+pm.min_spare_servers = {{ pool.pm_min_spare_servers }}
+pm.max_spare_servers = {{ pool.pm_max_spare_servers }}
+
+pm.status_path = {{ pool.pm_status_path }}
+
+clear_env = {{ 'yes' if pool.clear_env else 'no' }}

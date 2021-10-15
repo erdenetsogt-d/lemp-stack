@@ -1,0 +1,24 @@
+---
+- name: Add directories for backup
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ user_name }}"
+    mode: user
+    
+  loop:
+    - /backup/
+    - /backup/db
+    - /backup/db {{ database }}
+    - /backup/{{ vhost_domain }}
+    - /backup/{{ vhost_domain }}/web
+    - /backup/{{ vhost_domain }}/conf
+
+- name: Copy backup script
+  template:
+    src: backup_db.j2
+    dest: "/opt/{{ database }}.sh"
+    force: true
+    owner: root
+    group: "{{ root_group }}"
+    mode: a+x

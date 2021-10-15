@@ -1,0 +1,118 @@
+---
+- include_vars: "{{ item }}"
+  with_first_found:
+    - "../vars/lets-variables.yaml"
+  when: virtualenv_package_name is not defined
+  tags:
+  - lets
+
+- name: Ensure webroot exists
+  file:
+    path: "{{ letsencrypt_webroot_path }}"
+    state: directory
+    follow: yes
+  become: yes
+  tags:
+  - lets
+  notify:
+    - reload nginx
+
+
+- name: Attempt to get the certificate using the webroot authenticator
+  command: "{{ letsencrypt_command }} -a webroot --webroot-path {{ letsencrypt_webroot_path }} certonly"
+  become: yes
+  args:
+    creates: "/etc/letsencrypt/live/{{ vhost_domain }}"
+  when: letsencrypt_authenticator == "webroot"
+  register: lets_webroot
+  ignore_errors: True
+  
+
+# - name: Attempt to get the certificate using the standalone authenticator No need nginx or Apache2
+#   command: "{{ letsencrypt_command }} -a standalone auth {{ letsencrypt_standalone_command_args }}"
+#   become: yes
+#   args:
+#     creates: "/etc/letsencrypt/live/{{ vhost_domain }}"
+#     #creates: "/home/{{ user_name }}/conf/letsencrypt_cert_domains[0] }}"
+#   tags:
+#   - lets
+#   when: not lets_webroot.stats.exists
+
+- name: Fix the renewal file
+  ini_file:
+    section: renewalparams
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    dest: "/etc/letsencrypt/renewal/{{ vhost_domain }}.conf"
+  become: yes
+  with_dict:
+    os_packages_only: False
+    verb: certonly
+    noninteractive_mode: False
+    uir: False
+    hsts: False
+    authenticator: '{{ letsencrypt_authenticator }}'
+  tags:
+  - lets
+
+- name: Fix the webroot map in the renewal file
+  ini_file:
+    section: "[webroot_map]"
+    option: "{{ item }}"
+    value: "{{ letsencrypt_webroot_path }}"
+    dest: "/etc/letsencrypt/renewal/{{ vhost_domain }}.conf"
+  become: yes
+  with_items: "{{ letsencrypt_cert_domains }}"
+  tags:
+  - lets
+
+- name: Install renewal cron
+  become: yes
+  cron:
+    name: "Let's Encrypt Renewal"
+    day: "{{ letsencrypt_renewal_frequency.day }}"
+    hour: "{{ letsencrypt_renewal_frequency.hour }}"
+    minute: "{{ letsencrypt_renewal_frequency.minute }}"
+    job: "{{letsencrypt_path}} renew --quiet {{ letsencrypt_renewal_command_args }}"
+  tags:
+  - lets
+
+- name: Create directory for `ssl_certificate` and `ssl_certificate_key`
+  file:
+    path: '{{ item }}'
+    state: directory
+    recurse: yes
+  when: ssl_certificate is defined and ssl_certificate_key is defined
+  with_items:
+    - "{{ ssl_certificate|dirname }}"
+    - "{{ ssl_certificate_key|dirname }}"
+  tags:
+  - lets
+
+- name: Link ssl to new site
+  file:
+    src: /etc/letsencrypt/live/{{ vhost_domain }}/fullchain.pem
+    dest: /home/{{ user_name }}/conf/{{ vhost_domain }}/ssl/{{ vhost_domain }}.pem
+    state: link
+  tags:
+  - lets
+
+- name: Link ssl  key to new site
+  file:
+    src: /etc/letsencrypt/live/{{ vhost_domain}}/privkey.pem
+    dest: /home/{{ user_name }}/conf/{{ vhost_domain }}/ssl/{{ vhost_domain }}.key
+    state: link
+  tags:
+  - lets
+- name: reload nginx
+  service: name=nginx state=reloaded
+- name: Add Vhost config file from template
+  template:
+    src: host-ssl.j2
+    dest: "/etc/nginx/conf.d/domains/{{ vhost_domain }}.conf"
+    force: true
+    owner: root
+    group: "{{ root_group }}"
+    mode: 0644
+  notify:
+    - restart nginx

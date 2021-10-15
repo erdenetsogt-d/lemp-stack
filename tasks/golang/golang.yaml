@@ -1,0 +1,91 @@
+# Setup/install tasks.
+- name: Get golang zip from internet
+  get_url: 
+    url: "{{ golang_url }}"
+    dest: /tmp/golang.tar.gz
+    mode: '0775'
+
+
+  tags:
+  - golang
+
+- name: Check golang installed and exists.
+  stat:
+    path: "/usr/local/go"
+  register: golang_exists
+
+- name: Check golang folder exists
+  debug:
+    msg: "Golang is installed and this is going to be deleted"
+  when: golang_exists.stat.exists
+
+
+- name: Delete old golang directories
+  file:
+    state: absent
+    path: "/usr/local/go"
+  when: golang_exists.stat.exists
+
+- name: Extract golang 
+  unarchive:
+    src: "/tmp/golang.tar.gz"
+    dest: /usr/local
+    copy: no
+  become: yes
+  tags:
+  - golang
+  #############################
+- name: modify bashrc for root
+  blockinfile:
+    dest: "/root/.bashrc"
+    block: |
+      export GOPATH=$HOME/go
+      export GOBIN=$GOPATH/bin
+      export PATH=$GOBIN:$PATH:/usr/local/go/bin
+    marker: '# {mark} ANSIBLE MANAGED BLOCK - changes for golang'
+    insertafter: EOF
+    create: yes
+  tags:
+  - golang
+
+  #############################
+- name: modify bashrc
+  blockinfile:
+    dest: "/home/{{ user_name }}/.bashrc"
+    block: |
+     export PATH=$PATH:/usr/local/go/bin
+     export GOPATH=$HOME/go
+     export PATH=$PATH:~/go/bin
+    marker: '# {mark} ANSIBLE MANAGED BLOCK - changes for golang'
+    insertafter: EOF
+    create: yes 
+  tags:
+  - golang
+  - build
+  #############################
+
+
+- name: Copy goweb app
+  copy:
+    src: "{{ goapp_path }}"
+    dest: /home/{{ user_name }}/web/{{ vhost_domain }}
+    owner: "{{user_name }}"
+    mode: preserve
+  tags:
+  - golang
+
+
+######################Go Service########################################
+
+- name: Copy goweb service
+  template:
+    src: goweb.service.j2
+    dest: /lib/systemd/system/goweb.service
+
+- name: Reload daemon 
+  shell: systemctl daemon-reload
+
+- name: Enable goweb service 
+  shell: systemctl enable goweb
+  tags:
+  - golang

@@ -1,0 +1,74 @@
+---
+- name: Add PPA repo php older version
+  apt_repository:
+    validate_certs: no
+    repo: 'ppa:ondrej/php'
+    state: present
+    update_cache: yes
+
+- name: Install PHP-FPM
+  apt:
+    name:
+      - "php{{ php_version }}-fpm"
+  tags: php-fpm.install
+
+- name: Install PHP modules
+  apt:
+    pkg:
+    - php{{ php_version }}-mysql
+    - php{{ php_version }}-curl
+    - php{{ php_version }}-cli
+    #- php{{ php_version }}-json
+    - zip
+    - php{{ php_version }}-zip
+    - php{{ php_version }}-mbstring
+    - php{{ php_version }}-curl
+    - php{{ php_version }}-xml
+    - php{{ php_version }}-opcache
+    - php{{ php_version }}-common
+      #- pear
+    - php{{ php_version }}-bcmath
+
+    - php{{ php_version }}-imagick
+    - php{{ php_version }}-dev
+    - php{{ php_version }}-tidy
+    - php{{ php_version }}-tokenizer 
+    - php{{ php_version }}-gd  
+    - php{{ php_version }}-intl   
+    - php{{ php_version }}-pdo  
+    # - php{{ php_version }}-openssl
+    - php{{ php_version }}-ctype
+    - php{{ php_version }}-fileinfo
+    - php{{ php_version }}-pgsql
+  notify: reload php-fpm
+  tags: php-fpm.install
+  become: yes
+  ignore_errors: True
+
+
+- name: Remove default FPM pool
+  file:
+    state: absent
+    path: "/etc/php/{{ php_version }}/fpm/pool.d/www.conf"
+  when: not php_fpm_default_pool_enabled
+  tags: php-fpm.pools
+
+- name: Set PHP options for FPM
+  ini_file:
+    path: /etc/php/{{ php_version }}/fpm/php.ini
+    section: "{{ item.section | default('PHP') }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    state: "{{ item.state | default('present') }}"
+  with_items: "{{ php_fpm_ini_options }}"
+  notify: reload php-fpm
+  tags: php-fpm.options
+
+
+
+- name: Enable and start PHP-FPM service
+  systemd:
+    name: "php{{ php_version }}-fpm.service"
+    enabled: true
+    state: started
+  tags: php-fpm.install

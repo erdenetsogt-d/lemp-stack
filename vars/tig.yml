@@ -1,0 +1,12 @@
+# vars file for monitoring
+key_url: "https://packages.grafana.com/gpg.key"
+repo_deb: deb https://packages.grafana.com/oss/deb stable main
+
+
+key_url_telegraf: "https://repos.influxdata.com/influxdb.key"
+repo_deb_telegraf: deb https://repos.influxdata.com/ubuntu {{ ansible_distribution_release }} stable
+
+grafana_admin_pass: SDsu42JhguBV
+disable_initial_admin_creation: false
+influxdb_ip_address: localhost
+influxdb_database_name: telegraf

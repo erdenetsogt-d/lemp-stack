@@ -1,0 +1,8 @@
+---
+
+- name: Install MariaDB
+  include_tasks: "install/install-mariadb.yml"
+  when: new_install
+
+- name: Initiate Databses users and table
+  include_tasks: "mariadb/initiate_database.yml"

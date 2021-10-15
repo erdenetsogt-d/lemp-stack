@@ -1,0 +1,25 @@
+#!/bin/bash
+DB_NAME="{{ database }}"
+DB_PASSWORD="{{ mysql_root_password }}"
+DB_USER="root"
+DB_HOST="localhost"
+TODAY_DATE="$(date +'%Y_%m_%d_%H_%M_%S')"
+TODAY=`date +"%d%b%Y"`
+
+BACKUP_DIR="/backup/db/{{ database }}"
+mkdir -p ${BACKUP_DIR}/${TODAY}
+BACKUP_RETAIN_DAYS={{ backup_days}}
+# dump db in backup folder
+echo "mysqldump started at $(date +'%d-%m-%Y %H:%M:%S')"
+mysqldump -u $DB_USER -p$DB_PASSWORD --routines -h $DB_HOST -e --opt -c $DB_NAME | gzip -c > $BACKUP_DIR/${TODAY}//$FILENAME
+echo "mysqldump finished at $(date +'%d-%m-%Y %H:%M:%S')"
+############################################################################################
+DBDELDATE=`date +"%d%b%Y" --date="${BACKUP_RETAIN_DAYS} days ago"`
+
+if [ ! -z ${BACKUP_DIR} ]; then
+      cd ${BACKUP_DIR}
+      if [ ! -z ${DBDELDATE} ] && [ -d ${DBDELDATE} ]; then
+            rm -rf ${DBDELDATE}
+      fi
+fi
+##############################################################################################

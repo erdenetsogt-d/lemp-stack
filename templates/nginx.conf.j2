@@ -1,0 +1,148 @@
+user  {{ nginx_user }};
+
+error_log  {{ nginx_error_log }};
+pid        {{ nginx_pidfile }};
+
+{% block worker %}
+worker_processes  {{ nginx_worker_processes }};
+{% endblock %}
+
+{% if nginx_extra_conf_options %}
+{{ nginx_extra_conf_options }}
+{% endif %}
+
+{% block events %}
+events {
+    worker_connections  {{ nginx_worker_connections }};
+    use {{ use }};
+    multi_accept {{ nginx_multi_accept }};
+}
+{% endblock %}
+
+http {
+    {% block http_begin %}{% endblock %}
+
+{% block http_basic %}
+    include       {{ nginx_mime_file_path }};
+    default_type  application/octet-stream;
+
+    server_names_hash_bucket_size {{ nginx_server_names_hash_bucket_size }};
+
+    client_max_body_size {{ nginx_client_max_body_size }};
+    client_body_buffer_size         256k;
+    client_header_timeout           180s;
+    client_body_timeout             180s;
+    client_header_buffer_size       2k;
+    
+
+
+    log_format  main  {{ nginx_log_format|indent(23) }};
+    log_format  bytes   '$body_bytes_sent';
+    log_not_found off;
+    
+
+    access_log  {{ nginx_access_log }};
+
+    sendfile        {{ nginx_sendfile }};
+    tcp_nopush      {{ nginx_tcp_nopush }};
+    tcp_nodelay     {{ nginx_tcp_nodelay }};
+
+    keepalive_timeout  {{ nginx_keepalive_timeout }};
+    keepalive_requests {{ nginx_keepalive_requests }};
+
+    server_name_in_redirect         off;
+    server_names_hash_max_size      512;
+    charset                         utf-8;
+
+    # Proxy settings
+    proxy_redirect                  off;
+    proxy_set_header                Host $host;
+    proxy_set_header                X-Real-IP $remote_addr;
+    proxy_set_header                X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_pass_header               Set-Cookie;
+    proxy_buffers                   32 4k;
+    proxy_connect_timeout           30s;
+    proxy_read_timeout              300s;
+    proxy_send_timeout              180s;
+
+
+    server_tokens {{ nginx_server_tokens }};
+{% if nginx_proxy_cache_path %}
+    proxy_cache_path {{ nginx_proxy_cache_path }};
+{% endif %}
+{% endblock %}
+   # SSL PCI compliance
+    ssl_session_cache   shared:SSL:20m;
+    ssl_session_timeout 60m;
+    ssl_buffer_size     1400;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers         "ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA:ECDHE-ECDSA-DES-CBC3-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:DES-CBC3-SHA:!DSS";
+    #ssl_dhparam         /etc/ssl/dhparam.pem;
+    ssl_ecdh_curve      secp384r1;
+    ssl_session_tickets off;
+    resolver 127.0.0.53  valid=300s ipv6=off;
+    resolver_timeout    5s;
+
+
+
+
+{% block http_gzip %}
+    gzip on;
+    gzip_static         on;
+    gzip_vary           on;
+    gzip_comp_level     6;
+    gzip_min_length     1024;
+    gzip_buffers        16 8k;
+    gzip_http_version   1.1;
+    gzip_types          text/plain text/css text/javascript text/js text/xml application/json application/javascript application/x-javascript application/xml application/xml+rss application/x-font-ttf image/svg+xml font/opentype;
+    gzip_proxied        any;
+    gzip_disable        "MSIE [1-6]\.";
+
+{% endblock %}
+
+    # Proxy cache
+    proxy_cache_path /var/cache/nginx levels=2 keys_zone=cache:10m inactive=60m max_size=1024m;
+    proxy_cache_key "$host$request_uri $cookie_user";
+    proxy_temp_path  /var/cache/nginx/temp;
+    proxy_ignore_headers Expires Cache-Control;
+    proxy_cache_use_stale error timeout invalid_header http_502;
+    proxy_cache_valid any 1d;
+
+
+
+{% if nginx_extra_http_options %}
+    {{ nginx_extra_http_options|indent(4, False) }}
+{% endif %}
+
+{% block http_upstream %}
+{% for upstream in nginx_upstreams %}
+    upstream {{ upstream.name }} {
+{% if upstream.strategy is defined %}
+        {{ upstream.strategy }};
+{% endif %}
+{% for server in upstream.servers %}
+        server {{ server }};
+{% endfor %}
+{% if upstream.keepalive is defined %}
+        keepalive {{ upstream.keepalive }};
+{% endif %}
+    }
+{% endfor %}
+{% endblock %}
+ # Error pages
+ error_page 403 /error/404.html;
+ error_page 404 /error/404.html;
+ error_page 410 /error/410.html;
+ error_page 500 501 502 503 504 505 /error/50x.html;
+{% block http_includes %}
+    include {{ nginx_conf_path }}/*.conf;
+{% if nginx_conf_path != nginx_vhost_path %}
+    include {{ nginx_vhost_path }}/*;
+{% endif %}
+    include /etc/nginx/conf.d/domains/*.conf;
+
+{% endblock %}
+
+    {% block http_end %}{% endblock %}
+}

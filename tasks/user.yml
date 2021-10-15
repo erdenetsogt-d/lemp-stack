@@ -1,0 +1,42 @@
+---
+- name: Ensure group {{ group_name }} exists
+  ansible.builtin.group:
+    name: "{{ group_name }}"
+    state: present
+    gid: 998
+  tags:
+  - user
+- name: Add the user "{{ user_name }}" with a specific uid and a primary group
+  user:
+    name: "{{ user_name }}"
+    comment: Baatar Dorj
+    shell: /bin/bash
+    create_home: yes
+    uid: 1040
+  tags:
+  - user
+
+- name: adding existing user www-data to group admin
+  user:
+    name: '{{ __nginx_user }}'
+    groups:  "{{ group_name }}"
+    append: yes
+
+- name: adding existing user www-data to group admin
+  user:
+    name: '{{ user_name }}'
+    groups:  "{{ __nginx_user }}"
+    append: yes
+
+
+- name: Passwordless sudo for user
+  blockinfile:
+    dest: "/etc/sudoers"
+    block: |
+     {{ user_name }} ALL=(ALL) NOPASSWD:ALL    
+    marker: '# {mark} ANSIBLE MANAGED BLOCK - changes for user passwordless login'
+    insertafter: EOF
+    create: yes 
+ ####################################Folder File Creation#################################   
+
+

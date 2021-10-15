@@ -1,0 +1,72 @@
+---
+
+#######################################
+- name: update the apt cache
+  apt: update_cache=yes cache_valid_time=7200
+  become: yes
+- name: Define nginx_user.
+  set_fact:
+    nginx_user: "{{ __nginx_user }}"
+  when: nginx_user is not defined
+  
+- name: Update apt cache and install nginx
+  apt:
+    name: nginx
+    state: present
+  when: "'nginx' not in ansible_facts.packages"
+  become: yes
+
+- name: install logrotate
+  apt:
+    name: logrotate
+    state: present
+  tags:
+  - nginx
+
+- name: Copy log rotation fie
+  template:
+    src: nginx-log
+    dest:  /etc/logrotate.d/nginx
+
+- name: Copy nginx status config
+
+  copy:
+    src: files/status.conf
+    dest: /etc/nginx/conf.d/
+    mode: preserve
+  notify:
+    - reload nginx
+
+
+# Nginx setup.
+- name: Copy nginx configuration /etc/nginx/nginx.conf 
+  template:
+    src: "{{ nginx_conf_template }}"
+    dest: "{{ nginx_conf_file_path }}"
+    owner: root
+    group: "{{ root_group }}"
+    mode: 0644
+  notify:
+    - reload nginx
+
+- name: Ensure nginx service is running as configured.
+  service:
+    name: nginx
+    state: "{{ nginx_service_state }}"
+    enabled: "{{ nginx_service_enabled }}"
+
+- name: Add directories for {{ vhost_domain }}
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ user_name }}"
+    mode: user
+    
+  loop:
+    - /var/log/nginx/domains/
+    - /etc/nginx/conf.d/domains/
+
+  tags:
+    - mdkdir
+
+################################################################# 
