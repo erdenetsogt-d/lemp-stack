@@ -3,12 +3,20 @@ Software Stack for Ubuntu based servers
 Install LEMP stack on Ubuntu based servers and addition to optimise configurations. 
 It installs Nginx, PHP-FPM, MariaDB, Lets encrypt,Golang and TIG/Telegraf, InluxDB, Grafana/ stack
 Softwares can be set on /var/main.yml It also supports backup and retension policy. 
+inspired by vestacp and Jeff Geerling ansible automation channel.
+Tested on Ubuntu 20.04 and 21.04
 
+Ubuntu based сервер дээр LEMP суулгах, мөн мониторинг хийх автоматжуулалт бөгөөд өөрийн мэдэх tuning-үүдийг нэмж хийсэн. 
+Энэхүү playbook нь nginx, php-fpm, mariadb, lets-encrypt зэргийг суулган тохиргоог автоматжуулсан бөгөөд үндсэн юуг суулгах юуг суулгахгүй вэ гэдгийг /var/main.yml дээр true эсвэл false утгаар тохируулсанаар ажиллуулах боломжтой. 
+3000 дугаар порт дээр Grafana суусан байгаа. Шинээр суулгасан бол серверээ restart хийхийг зөвлөж байна.
+Мөн сүүлийн 7 өдрийн DB болон file backup гарган хадгалах скрипт бэлдэн гаргасан. 
 
 Requirements
 ------------
 
 Prefer to run newly installed instance
+
+Шинэ суусан Ubuntu 
 
 Role Variables
 --------------
