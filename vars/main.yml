@@ -2,20 +2,17 @@
 # vars file for lets
 user_name: lambda
 group_name: admin
-vhost_domain: "ans17.snapsol.mn"
+vhost_domain: "sub1.bitsoft.mn"
 new_install: true
 install_phpfpm: true
 install_golang: true
 install_tig: true
-
-vhost_use_ssl: true
-lets_encrypt: true
-
+vhost_use_ssl: false
+lets_encrypt: false
 install_mariadb: true
-
 set_timezone: true
 set_proxy: false
-letsencrypt_email: erdenetsogt.d@gmail.com
+letsencrypt_email: erdenetsogt@bitsoft.mn
 
 index_page: files  
 timezone: Asia/Ulaanbaatar

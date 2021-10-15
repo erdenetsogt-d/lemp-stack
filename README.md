@@ -1,17 +1,36 @@
 Software Stack for Ubuntu based servers
 =========
+Install LEMP stack on Ubuntu based servers and addition to optimise configurations. 
+It installs Nginx, PHP-FPM, MariaDB, Lets encrypt,Golang and TIG/Telegraf, InluxDB, Grafana/ stack
+Softwares can be set on /var/main.yml It also supports backup and retension policy. 
 
-A brief description of the role goes here.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+Prefer to run newly installed instance
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+Variables can be found on /var/main.yml for choose which package will install. 
+
+vhost_domain: "sub1.example.com"
+new_install: true
+install_phpfpm: true
+install_golang: true
+install_tig: true
+vhost_use_ssl: false
+lets_encrypt: false
+install_mariadb: true
+set_timezone: true
+set_proxy: false
+
+Can be change php version on /var/php-fpm.yml
+Mariadb related configs will found ubuntu-mariadb.yml
+if backup: true, this will create backup folder and backup scripts on server. Default retention days is 7. Generated backup script will located on /opt/
+
+sql file can be imported to newly created database. Copy sql file to /files folder and should be renamed table.sql 
 
 Dependencies
 ------------
