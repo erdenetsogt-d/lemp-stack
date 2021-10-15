@@ -63,9 +63,13 @@ Including an example of how to use your role (for instance, with variables passe
 
 ---
 - hosts: all
+
   become: true
+
   roles:
+
    - software-stack
+   
 License
 -------
 
