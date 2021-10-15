@@ -7,7 +7,15 @@ inspired by vestacp and Jeff Geerling ansible automation channel.
 Tested on Ubuntu 20.04 and 21.04
 
 Ubuntu based сервер дээр LEMP суулгах, мөн мониторинг хийх автоматжуулалт бөгөөд өөрийн мэдэх tuning-үүдийг нэмж хийсэн. 
-Энэхүү playbook нь nginx, php-fpm, mariadb, lets-encrypt зэргийг суулган тохиргоог автоматжуулсан бөгөөд үндсэн юуг суулгах юуг суулгахгүй вэ гэдгийг /var/main.yml дээр true эсвэл false утгаар тохируулсанаар ажиллуулах боломжтой. 
+Энэхүү playbook нь 
+nginx
+
+php-fpm 5.6-7.0, 7.2, 7.3, 7.4, 8.0 зэргээс сонгон суулгах боломжтой
+
+mariadb 
+
+lets-encrypt зэргийг суулган тохиргоог автоматжуулсан бөгөөд үндсэн юуг 
+суулгах юуг суулгахгүй вэ гэдгийг /var/main.yml дээр true эсвэл false утгаар тохируулсанаар ажиллуулах боломжтой. 
 3000 дугаар порт дээр Grafana суусан байгаа. Шинээр суулгасан бол серверээ restart хийхийг зөвлөж байна.
 Мөн сүүлийн 7 өдрийн DB болон file backup гарган хадгалах скрипт бэлдэн гаргасан. 
 
@@ -69,7 +77,7 @@ Including an example of how to use your role (for instance, with variables passe
   roles:
 
    - software-stack
-   
+
 License
 -------
 
