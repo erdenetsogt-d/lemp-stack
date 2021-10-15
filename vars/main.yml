@@ -18,12 +18,12 @@ index_page: files
 timezone: Asia/Ulaanbaatar
 database: lambda
 db_user_name: "lambda"
-db_user_password: "randompass"
+db_user_password: "randompassss"
 mysql_root_password: 'dsfJGD5Dsfd&65'
-php_version: 8.0
+php_version: 7.4
 backup: true
 
-laravel: true  ## This will change nginx webroot path for laravel projects
+laravel: false  ## This will change nginx webroot path for laravel projects
 
 grafana_url: "http://localhost:3000"
 grafana_user: admin
