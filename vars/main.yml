@@ -2,14 +2,14 @@
 # vars file for lets
 user_name: lambda
 group_name: admin
-vhost_domain: "sub1.bitsoft.mn"
+vhost_domain: "test.geek.mn"
 new_install: true
-install_phpfpm: true
+install_phpfpm: false
 install_golang: true
-install_tig: true
-vhost_use_ssl: false
-lets_encrypt: false
-install_mariadb: true
+install_tig: false
+vhost_use_ssl: true
+lets_encrypt: true
+install_mariadb: false
 set_timezone: true
 set_proxy: false
 letsencrypt_email: erdenetsogt@bitsoft.mn

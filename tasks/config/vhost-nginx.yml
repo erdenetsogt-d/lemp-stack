@@ -107,7 +107,8 @@
     path: "{{ item }}"
     state: directory
     owner: "{{ user_name }}"
-    mode: user
+    group: "{{ group_name }}"
+    mode: 0751
     
   loop:
     - /home/{{ user_name }}/conf/{{ vhost_domain }}
@@ -132,7 +133,7 @@
     dest: "/etc/nginx/conf.d/domains/{{ vhost_domain }}.conf"
     force: true
     owner: root
-    group: "{{ root_group }}"
+#    group: "{{ root_group }}"
     mode: 0644
 
     
@@ -161,6 +162,7 @@
     src: files/index.html
     dest: "{{ webroot_path }}" 
     mode: preserve
+    owner: "{{user_name}}"
   notify:
     - reload nginx
 
@@ -179,13 +181,19 @@
   notify:
     - reload nginx
 
+# - name: Change permissions of vhost user
+#   file:
+#     path: /home/{{ user_name }}/web/{{ vhost_domain }}
+#     owner: "{{ user_name }}"
+#     group: "{{ group_name }}"
+#     recurse: yes
+  
 - name: Change permissions of vhost user
   file:
-    path: /home/{{ user_name }}/web/{{ vhost_domain }}
+    path: /home/{{ user_name }}/web/{{ vhost_domain }}/public_html
     owner: "{{ user_name }}"
-    group: "{{ group_name }}"
-    recurse: yes
-  
+    group: www-data
+
 
 - name: reload nginx
   service: name=nginx state=restarted

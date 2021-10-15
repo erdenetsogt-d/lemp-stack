@@ -22,11 +22,11 @@
     groups:  "{{ group_name }}"
     append: yes
 
-- name: adding existing user www-data to group admin
-  user:
-    name: '{{ user_name }}'
-    groups:  "{{ __nginx_user }}"
-    append: yes
+# - name: adding existing user www-data to group admin
+#   user:
+#     name: '{{ user_name }}'
+#     groups:  "{{ __nginx_user }}"
+#     append: yes
 
 
 - name: Passwordless sudo for user

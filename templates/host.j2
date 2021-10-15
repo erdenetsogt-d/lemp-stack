@@ -1,6 +1,6 @@
 server {
   listen 80;
-  listen [::]:80;
+
   server_name {{ vhost_domain }} www.{{ vhost_domain }};
   root {{ webroot_path }};
   index index.php index.html index.htm;
