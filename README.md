@@ -1,4 +1,4 @@
-Software Stack for Ubuntu based servers
+##Software Stack for Ubuntu based servers
 =========
 Install LEMP stack on Ubuntu based servers and addition to optimise configurations. 
 It installs Nginx, PHP-FPM, MariaDB, Lets encrypt,Golang and TIG/Telegraf, InluxDB, Grafana/ stack
