@@ -1,4 +1,4 @@
-Role Name
+Software Stack for Ubuntu based servers
 =========
 
 A brief description of the role goes here.
