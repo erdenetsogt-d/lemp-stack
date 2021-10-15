@@ -22,6 +22,12 @@
     groups:  "{{ group_name }}"
     append: yes
 
+
+- name: Change home directory permission
+  ansible.builtin.file:
+    path: /home/{{ user_name }}
+    state: directory
+    mode: '0755'
 # - name: adding existing user www-data to group admin
 #   user:
 #     name: '{{ user_name }}'
