@@ -2,14 +2,14 @@
 # vars file for lets
 user_name: lambda
 group_name: admin
-vhost_domain: "test.geek.mn"
+vhost_domain: "demo.geek.mn"
 new_install: true
-install_phpfpm: false
+install_phpfpm: true
 install_golang: true
-install_tig: false
+install_tig: true
 vhost_use_ssl: true
 lets_encrypt: true
-install_mariadb: false
+install_mariadb: true
 set_timezone: true
 set_proxy: false
 letsencrypt_email: erdenetsogt@bitsoft.mn
@@ -20,7 +20,7 @@ database: lambda
 db_user_name: "lambda"
 db_user_password: "randompassss"
 mysql_root_password: 'dsfJGD5Dsfd&65'
-php_version: 7.4
+php_version: 8.0
 backup: true
 
 laravel: false  ## This will change nginx webroot path for laravel projects
