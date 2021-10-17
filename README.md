@@ -30,6 +30,9 @@ Requirements
 Prefer to run newly installed instance
 
 Шинэ суусан Ubuntu 
+Демо видеог доор харуулав.
+
+https://www.youtube.com/watch?v=rGInjB0jb0I
 
 Role Variables
 --------------
