@@ -28,7 +28,8 @@ TIG monitoring
 Requirements
 ------------
 
-Prefer to run newly installed instance
+Prefer to run newly installed instance. 
+Tested on Ubuntu 20.04 and 21.04
 
 Шинэ суусан Ubuntu. Ansible суусан байх шаардлагатай ба 
 Демо видеог доор харуулав.
