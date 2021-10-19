@@ -1,13 +1,13 @@
-##Software Stack for Ubuntu based servers
+Ansible LEMP role for build software Stack for Ubuntu based servers
 =========
-Install LEMP stack on Ubuntu based servers and addition to optimise configurations. 
+Install LEMP stack on Ubuntu based servers and addition to optimise configurations.  All tasks on single ansible role. /Production ready/
 It installs Nginx, PHP-FPM, MariaDB, Lets encrypt,Golang and TIG/Telegraf, InluxDB, Grafana/ stack
 Softwares can be set on /var/main.yml It also supports backup and retension policy. 
 inspired by vestacp and Jeff Geerling ansible automation channel.
 Tested on Ubuntu 20.04 and 21.04
 
-Ubuntu based сервер дээр LEMP суулгах, мөн мониторинг хийх автоматжуулалт бөгөөд өөрийн мэдэх tuning-үүдийг нэмж хийсэн. 
-Энэхүү playbook нь 
+Ubuntu based сервер дээр LEMP суулгах, мөн мониторинг хийх автоматжуулалт бөгөөд өөрийн мэдэх tuning-үүдийг нэмж хийсэн.  
+Энэхүү playbook нь хялбар байдлаар Production ready серверийг бэлдэх боломжтой
 
 nginx
 
@@ -29,7 +29,7 @@ Requirements
 
 Prefer to run newly installed instance
 
-Шинэ суусан Ubuntu 
+Шинэ суусан Ubuntu. Ansible суусан байх шаардлагатай ба 
 Демо видеог доор харуулав.
 
 https://www.youtube.com/watch?v=rGInjB0jb0I
