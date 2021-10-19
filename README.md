@@ -1,6 +1,7 @@
 Ansible LEMP role for build software Stack for Ubuntu based servers
 =========
 Install LEMP stack on Ubuntu based servers and addition to optimise configurations.  All tasks on single ansible role. /Production ready/
+
 It installs Nginx, PHP-FPM, MariaDB, Lets encrypt,Golang and TIG/Telegraf, InluxDB, Grafana/ stack
 Softwares can be set on /var/main.yml It also supports backup and retension policy. 
 inspired by vestacp and Jeff Geerling ansible automation channel.
@@ -74,7 +75,6 @@ Need root user or sudo user.
 
 Playbook
 ----------------
-
 
 ---
 - hosts: all
