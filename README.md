@@ -77,13 +77,13 @@ Playbook
 ----------------
 
 ---
-- hosts: all
+  - hosts: all
 
-  become: true
+    become: true
 
-  roles:
+    roles:
 
-   - software-stack
+      - software-stack
 ---
 License
 -------
