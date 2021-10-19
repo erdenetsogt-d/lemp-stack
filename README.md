@@ -84,7 +84,7 @@ Playbook
   roles:
 
    - software-stack
-
+---
 License
 -------
 
